@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #333333;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .button-container {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+  }
+
+  input[type="button"] {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-insert { background-color: #0ea4e97a; color: white; }
+  .btn-insert:hover { background-color: #0ea4e97a; transform: translateY(-1px); }
+  .btn-delete { background-color: #f43f5d86; color: white; }
+  .btn-delete:hover { background-color: #f43f5d86; transform: translateY(-1px); }
+
+  #sampleTable {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 600px;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  #sampleTable tr:first-child {
+    background-color: #1e293b;
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  #sampleTable td { 
+    padding: 14px 20px; 
+    text-align: left; 
+    border-bottom: 1px solid #e2e8f0; 
+    outline: none; /* Removes the ugly default focus border */
+  }
+
+  /* Gives a nice visual cue when you click to edit a cell */
+  #sampleTable td[contenteditable="true"]:focus {
+    background-color: #f0f9ff;
+    box-shadow: inset 0 0 0 2px #0ea5e9;
+  }
+
+  #sampleTable tr:nth-child(even) { background-color: #f8fafc; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .new-row-animation { animation: fadeIn 0.3s ease forwards; }
+</style>
+</head>
+
+<body onload="loadTableData()">
+
+<div class="button-container">
+  <input type="button" class="btn-insert" onclick="insert_Row()" value="Add New Row"> 
+  <input type="button" class="btn-delete" onclick="delete_Row()" value="Remove Bottom Row"> 
+</div>
+
+<table id="sampleTable"> 
+  <tr>
+    <td>Information1</td> 
+    <td>For what</td> 
+    <td>Notes</td>
+  </tr> 
+</table>
+
+<script> 
+function loadTableData() {
+  var savedData = localStorage.getItem('tableRows');
+  
+  if (savedData) {
+    var rowsArray = JSON.parse(savedData);
+    
+    rowsArray.forEach(function(rowData) {
+      addRowToDOM(rowData[0], rowData[1], rowData[2], false);
+    });
+  } else {
+    addRowToDOM("Click me to type", "Sample Data 2", "Sample Data 3", false);
+    saveTableData();
+  }
+}
+
+function saveTableData() {
+  var table = document.getElementById('sampleTable');
+  var rowsArray = [];
+  
+  for (var i = 1; i < table.rows.length; i++) {
+    var row = table.rows[i];
+    rowsArray.push([
+      row.cells[0].innerHTML,
+      row.cells[1].innerHTML,
+      row.cells[2].innerHTML
+    ]);
+  }
+  
+  localStorage.setItem('tableRows', JSON.stringify(rowsArray));
+}
+
+// NEW UPDATE: Added contenteditable and an oninput trigger
+function addRowToDOM(val1, val2, val3, animate) {
+  var table = document.getElementById('sampleTable');
+  var newRow = table.insertRow(-1);
+  
+  if (animate) { newRow.classList.add('new-row-animation'); }
+  
+  var cell1 = newRow.insertCell(0);
+  var cell2 = newRow.insertCell(1);
+  var cell3 = newRow.insertCell(2);
+  
+  // 1. Make cells editable by the user
+  cell1.contentEditable = "true";
+  cell2.contentEditable = "true";
+  cell3.contentEditable = "true";
+
+  // 2. Save the new text to local storage automatically when the user types
+  cell1.oninput = saveTableData;
+  cell2.oninput = saveTableData;
+  cell3.oninput = saveTableData;
+  
+  cell1.innerHTML = val1;
+  cell2.innerHTML = val2;
+  cell3.innerHTML = val3;
+}
+
+function insert_Row() { 
+  addRowToDOM("New Cell1", "New Cell2", "New Cell3", true);
+  saveTableData(); 
+}
+
+function delete_Row() {
+  var table = document.getElementById('sampleTable');
+  
+  if (table.rows.length > 1) {
+    table.deleteRow(-1);
+    saveTableData(); 
+  } else {
+    alert("No more rows to delete!");
+  }
+}
+</script>
+
+</body>
+</html>
